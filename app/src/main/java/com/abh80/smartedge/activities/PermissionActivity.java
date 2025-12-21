@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.abh80.smartedge.R;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 public class PermissionActivity extends AppCompatActivity {
     @Override
@@ -50,11 +51,11 @@ public class PermissionActivity extends AppCompatActivity {
         super.onResume();
         int checks = 0;
         if (Settings.Secure.getString(this.getContentResolver(), "enabled_notification_listeners") != null && Settings.Secure.getString(this.getContentResolver(), "enabled_notification_listeners").contains(getApplicationContext().getPackageName())) {
-            ((CheckBox) findViewById(R.id.notification_access_checkbox)).setChecked(true);
+            ((MaterialSwitch) findViewById(R.id.notification_access_switch)).setChecked(true);
             checks++;
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            ((CheckBox) findViewById(R.id.record_audio_checkbox)).setChecked(true);
+            ((MaterialSwitch) findViewById(R.id.record_audio_switch)).setChecked(true);
             checks++;
         }
         if (checks >= 2) {

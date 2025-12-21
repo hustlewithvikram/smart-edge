@@ -10,7 +10,7 @@
         android:layout_height="match_parent"
         android:layout_marginTop="20dp"
         android:orientation="vertical"
-        android:padding="10dp"
+        android:padding="5dp"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
     </androidx.recyclerview.widget.RecyclerView>
@@ -24,8 +24,9 @@
             android:id="@+id/collapsing_toolbar"
             style="?attr/collapsingToolbarLayoutLargeStyle"
             android:layout_width="match_parent"
+            android:layout_marginHorizontal="10dp"
             android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
-            app:expandedTitleTextAppearance="@style/TextAppearance.MaterialComponents.Headline3"
+            app:expandedTitleTextAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             app:expandedTitleTextColor="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap|enterAlwaysCollapsed">
 

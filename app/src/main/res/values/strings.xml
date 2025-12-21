@@ -25,4 +25,6 @@
     <string name="select_color_to_apply_to_background">Select color to apply to background</string>
     <string name="color_hex">Color (hex)</string>
     <string name="apply">Apply</string>
+    <string name="grant_permissions">Grant Permissions</string>
+    <string name="required_permissions">Required permissions</string>
 </resources>

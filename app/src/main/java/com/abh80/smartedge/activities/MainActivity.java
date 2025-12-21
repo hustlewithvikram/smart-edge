@@ -1,6 +1,8 @@
 package com.abh80.smartedge.activities;
 
 import android.Manifest;
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -13,6 +15,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -22,6 +25,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.abh80.smartedge.BuildConfig;
 import com.abh80.smartedge.R;
 import com.abh80.smartedge.plugins.ExportedPlugins;
+import com.abh80.smartedge.services.OverlayService;
 import com.abh80.smartedge.services.UpdaterService;
 import com.abh80.smartedge.utils.adapters.RecylerViewSettingsAdapter;
 import com.abh80.smartedge.utils.SettingStruct;
@@ -42,9 +47,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener {
     private SharedPreferences sharedPreferences;
@@ -69,12 +76,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         ) || ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             startActivity(new Intent(this, PermissionActivity.class));
         }
-        MaterialCardView enable_btn = findViewById(R.id.enable_switch);
+        MaterialSwitch enable_btn = findViewById(R.id.enable_switch_toggle);
         enable_btn.setOnClickListener(l -> {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
             Toast.makeText(this, "Installed Apps -> Smart Edge", Toast.LENGTH_SHORT).show();
         });
+
+        // set the setting on or off status
+        this.setupAccessibilitySwitch();
+
         settings.add(new SettingStruct("Manage Overlay Layout", "App Settings", SettingStruct.TYPE_CUSTOM) {
             @Override
             public void onClick(Context c) {
@@ -166,10 +177,57 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private RecyclerView recyclerView;
 
+    // In your Activity's onCreate or onResume
+    private void setupAccessibilitySwitch() {
+        MaterialSwitch enable_btn = findViewById(R.id.enable_switch_toggle);
+
+        // 1. CHECK CURRENT STATE
+        boolean isServiceEnabled = isAccessibilityServiceEnabled(this, OverlayService.class);
+        enable_btn.setChecked(isServiceEnabled);
+
+        // 2. SETUP CLICK LISTENER
+        enable_btn.setOnClickListener(l -> {
+            if (!isAccessibilityServiceEnabled(this, OverlayService.class)) {
+                // Service is OFF - open settings to enable it
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+                Toast.makeText(this, "Installed Apps → Smart Edge → Toggle ON", Toast.LENGTH_LONG).show();
+            } else {
+                // Service is ON - show message
+                Toast.makeText(this, "Smart Edge is already enabled", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // 3. OPTIONAL: Make entire card clickable too
+        MaterialCardView cardView = findViewById(R.id.enable_switch);
+        cardView.setOnClickListener(v -> {
+            enable_btn.performClick();
+        });
+    }
+
+    // Helper method to check if accessibility service is enabled
+    private boolean isAccessibilityServiceEnabled(Context context, Class<? extends AccessibilityService> service) {
+        AccessibilityManager am = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+
+        if (am != null) {
+            List<AccessibilityServiceInfo> enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK);
+
+            for (AccessibilityServiceInfo enabledService : enabledServices) {
+                ServiceInfo enabledServiceInfo = enabledService.getResolveInfo().serviceInfo;
+                if (enabledServiceInfo.packageName.equals(context.getPackageName()) &&
+                        enabledServiceInfo.name.equals(service.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        this.setupAccessibilitySwitch();
     }
 
     @Override
@@ -181,7 +239,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     private void init() {
         if (sharedPreferences == null) {
-
             sharedPreferences = getSharedPreferences(getPackageName(), MODE_PRIVATE);
         }
     }

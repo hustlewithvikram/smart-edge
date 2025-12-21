@@ -8,6 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="20dp"
         android:orientation="vertical"
         android:padding="10dp"
         app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
@@ -47,11 +48,12 @@
         android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_marginHorizontal="15dp"
             android:id="@+id/collapsing_toolbar"
             style="?attr/collapsingToolbarLayoutLargeStyle"
             android:layout_width="match_parent"
             android:layout_height="?attr/collapsingToolbarLayoutLargeSize"
-            app:expandedTitleTextAppearance="@style/TextAppearance.MaterialComponents.Headline3"
+            app:expandedTitleTextAppearance="@style/TextAppearance.MaterialComponents.Headline4"
             app:expandedTitleTextColor="?attr/colorPrimary"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap|enterAlwaysCollapsed">
 

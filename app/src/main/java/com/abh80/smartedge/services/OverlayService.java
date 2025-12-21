@@ -350,7 +350,7 @@ public class OverlayService extends AccessibilityService {
         bindPlugin();
     }
 
-    private int last_min_size = 200;
+    private int last_min_size = 150;
 
     public void animateOverlay(int h, int w, boolean expanded, CallBack callBackStart, CallBack callBackEnd, boolean expandedPrev) {
         int init_w = w;

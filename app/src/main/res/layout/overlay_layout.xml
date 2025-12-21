@@ -8,6 +8,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/rounded_corner"
     tools:layout_height="200dp"
-    tools:layout_width="200dp">
+    tools:layout_width="150dp">
 
 </androidx.constraintlayout.widget.ConstraintLayout>

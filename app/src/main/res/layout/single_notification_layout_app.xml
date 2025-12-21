@@ -10,6 +10,7 @@
     android:layout_centerVertical="true"
     app:shapeAppearance="@style/ShapeAppearanceOverlay.App.roundedImageView"
     android:layout_height="50dp"/>
+
     <TextView
         android:id="@+id/app_title"
         android:textColor="@color/white"
@@ -23,7 +24,6 @@
     <com.google.android.material.materialswitch.MaterialSwitch
         android:id="@+id/app_switch"
         android:layout_centerVertical="true"
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true" />
