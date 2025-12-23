@@ -27,4 +27,5 @@
     <string name="apply">Apply</string>
     <string name="grant_permissions">Grant Permissions</string>
     <string name="required_permissions">Required permissions</string>
+    <string name="charging">Charging</string>
 </resources>

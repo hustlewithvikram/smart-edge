@@ -1,64 +1,262 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/binded"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipChildren="false">
 
+    <!-- Battery image (replaces cover) - KEPT SAME -->
     <RelativeLayout
         android:id="@+id/relativeLayout"
+        android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:clickable="false"
-        android:paddingVertical="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/blank_space"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:paddingVertical="5dp">
 
         <com.abh80.smartedge.views.BatteryImageView
             android:id="@+id/cover"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
             android:layout_marginStart="8dp"
-            android:clickable="false"
-            />
+            app:strokeColor="@color/green_500"
+            app:strokeWidth="3dp" />
     </RelativeLayout>
 
+    <!-- Visualizer area (used for text in battery) - KEPT SAME -->
     <RelativeLayout
         android:id="@+id/relativeLayout4"
+        android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/blank_space"
         android:clickable="false"
         android:focusable="false"
         android:paddingVertical="5dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/blank_space"
-        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="RtlSymmetry,UselessLeaf">
 
         <TextView
             android:id="@+id/text_percent"
-            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginEnd="8dp"
-            android:textColor="@color/white"
-            android:clickable="false" />
-
+            android:text="100%"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_500" />
     </RelativeLayout>
 
-
+    <!-- Blank space for touch area - KEPT SAME -->
     <LinearLayout
         android:id="@+id/blank_space"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:minWidth="50dp"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:visibility="gone" />
+
+    <!-- IMPROVED: Expanded info section with better hierarchy -->
+    <LinearLayout
+        android:id="@+id/expanded_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/relativeLayout"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="12dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
+
+        <!-- Main info row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Battery icon in expanded view -->
+            <com.abh80.smartedge.views.BatteryImageView
+                android:id="@+id/expanded_battery"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:strokeColor="?android:attr/textColorPrimary"
+                app:strokeWidth="2.5dp" />
+
+            <!-- Percentage and status -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="16dp">
+
+                <TextView
+                    android:id="@+id/detailed_percent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="100%"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:textColor="?android:attr/textColorPrimary" />
+
+                <TextView
+                    android:id="@+id/charging_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Charging rapidly"
+                    android:textSize="14sp"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Optional: Add time remaining here for quick glance -->
+            <TextView
+                android:id="@+id/quick_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="~2h 30m"
+                android:textSize="14sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"
+            android:background="?android:attr/dividerHorizontal" />
+
+        <!-- Battery details in grid layout -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="2"
+            android:rowCount="2"
+            android:columnOrderPreserved="false"
+            android:useDefaultMargins="true">
+
+            <!-- Health -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Health"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/health_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="end"
+                android:text="Good"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="normal" />
+
+            <!-- Time remaining -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Time remaining"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_gravity="start" />
+
+            <TextView
+                android:id="@+id/time_remaining"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="end"
+                android:text="~2 hours 30 minutes"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="normal" />
+
+            <!-- Temperature (optional) -->
+            <TextView
+                android:id="@+id/temp_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Temperature"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_gravity="start"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/temperature"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="end"
+                android:text="32°C"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="normal"
+                android:visibility="gone" />
+
+            <!-- Technology (optional) -->
+            <TextView
+                android:id="@+id/tech_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Technology"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:layout_gravity="start"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/technology"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_gravity="end"
+                android:text="Li-ion"
+                android:textSize="13sp"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textStyle="normal"
+                android:visibility="gone" />
+        </GridLayout>
+
+        <!-- Optional: Quick actions -->
+        <LinearLayout
+            android:id="@+id/quick_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="16dp"
+            android:visibility="gone">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_battery_saver"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Battery Saver"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_battery_settings"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Settings"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

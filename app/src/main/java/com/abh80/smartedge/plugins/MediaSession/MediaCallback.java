@@ -94,6 +94,5 @@ public class MediaCallback extends MediaController.Callback {
             ctx.mCurrent = null;
         }
         ctx.closeOverlay();
-
     }
 }

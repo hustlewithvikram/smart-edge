@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Add your BatteryImageView attributes -->
+    <declare-styleable name="BatteryImageView">
+        <attr name="strokeColor" format="color" />
+        <attr name="backgroundColor" format="color" />
+        <attr name="textColor" format="color" />
+        <attr name="strokeWidth" format="dimension" />
+        <attr name="backgroundStrokeWidth" format="dimension" />
+        <attr name="showBackground" format="boolean" />
+        <attr name="showText" format="boolean" />
+        <attr name="showGlow" format="boolean" />
+        <attr name="animationDuration" format="integer" />
+    </declare-styleable>
+
+    <declare-styleable name="BatteryStatusView">
+        <attr name="showBatteryBars" format="boolean" />
+        <attr name="showTimeRemaining" format="boolean" />
+        <attr name="showHealthStatus" format="boolean" />
+        <attr name="compactMode" format="boolean" />
+    </declare-styleable>
+</resources>

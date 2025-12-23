@@ -579,6 +579,4 @@ public class OverlayService extends AccessibilityService {
 
     private View mView;
     public WindowManager mWindowManager;
-
-
 }

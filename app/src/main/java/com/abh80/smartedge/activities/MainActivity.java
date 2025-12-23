@@ -179,30 +179,36 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     // In your Activity's onCreate or onResume
     private void setupAccessibilitySwitch() {
-        MaterialSwitch enable_btn = findViewById(R.id.enable_switch_toggle);
+        MaterialSwitch enableSwitch = findViewById(R.id.enable_switch_toggle);
 
-        // 1. CHECK CURRENT STATE
-        boolean isServiceEnabled = isAccessibilityServiceEnabled(this, OverlayService.class);
-        enable_btn.setChecked(isServiceEnabled);
+        boolean isEnabled = isAccessibilityServiceEnabled(this, OverlayService.class);
+        enableSwitch.setChecked(isEnabled);
 
-        // 2. SETUP CLICK LISTENER
-        enable_btn.setOnClickListener(l -> {
-            if (!isAccessibilityServiceEnabled(this, OverlayService.class)) {
-                // Service is OFF - open settings to enable it
-                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(intent);
-                Toast.makeText(this, "Installed Apps → Smart Edge → Toggle ON", Toast.LENGTH_LONG).show();
+        enableSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Prevent fake toggling
+            enableSwitch.setChecked(isAccessibilityServiceEnabled(this, OverlayService.class));
+
+            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            startActivity(intent);
+
+            if (isChecked) {
+                Toast.makeText(
+                        this,
+                        "Enable Smart Edge from Accessibility → Installed apps",
+                        Toast.LENGTH_LONG
+                ).show();
             } else {
-                // Service is ON - show message
-                Toast.makeText(this, "Smart Edge is already enabled", Toast.LENGTH_SHORT).show();
+                Toast.makeText(
+                        this,
+                        "Disable Smart Edge from Accessibility settings",
+                        Toast.LENGTH_LONG
+                ).show();
             }
         });
 
-        // 3. OPTIONAL: Make entire card clickable too
+        // Optional: entire card clickable
         MaterialCardView cardView = findViewById(R.id.enable_switch);
-        cardView.setOnClickListener(v -> {
-            enable_btn.performClick();
-        });
+        cardView.setOnClickListener(v -> enableSwitch.performClick());
     }
 
     // Helper method to check if accessibility service is enabled
