@@ -1,9 +1,6 @@
 name: Build APK
 
-on:
-  pull_request:
-    types:
-      - opened
+on: workflow_dispatch  # Changed from pull_request to workflow_dispatch
 
 jobs:
   build:
