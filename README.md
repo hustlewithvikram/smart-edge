@@ -1,14 +1,32 @@
-# Smart Edge (Early Access) [![Build & Publish Debug APK](https://github.com/abh80/smart-edge/actions/workflows/release.yml/badge.svg)](https://github.com/abh80/smart-edge/actions/workflows/release.yml)
-  Alternative to dynamic island for android.
-# Downloads
+# Smart Edge (Early Access)
+Alternative to Dynamic Island for Android
 
-  [![Download Button](https://img.shields.io/github/v/release/abh80/smart-edge?color=7885FF&label=Android-Apk&logo=android&style=for-the-badge)](https://github.com/abh80/smart-edge/releases/download/20204/release.apk)
-# Donations
-  Help support the project by donating ❤️
-  
-  <a href="https://paypal.me/devabh80">
-    <img width="300" src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" />
-  </a>
+[![Build & Publish Debug APK](https://github.com/hustlewithvikram/smart-edge/actions/workflows/release.yml/badge.svg)](https://github.com/hustlewithvikram/smart-edge/actions/workflows/release.yml)
 
-# Previews
-<img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/screenshot.png" width="500"/>
+---
+
+## Downloads
+
+### GitHub Actions (Latest Builds)
+
+Download the latest debug APKs directly from the GitHub Actions workflow:
+
+https://github.com/hustlewithvikram/smart-edge/actions/workflows/build.yml
+
+These are early-access debug builds. Bugs, breaking changes, and unfinished features are expected.
+
+---
+
+## Roadmap
+
+### Current Features
+The following features are present in Smart Edge:
+
+- [x] Overlay-based Dynamic Island–style UI
+- [x] Persistent floating pill displayed above apps
+- [x] Media playback session detection
+- [x] Battery and charging status indicators
+- [x] Basic incoming notification UI
+- [x] Basic incoming calls & messages through notifications
+
+---
