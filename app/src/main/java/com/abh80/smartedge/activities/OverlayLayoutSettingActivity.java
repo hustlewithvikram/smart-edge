@@ -3,10 +3,7 @@ package com.abh80.smartedge.activities;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.MenuItem;
 import android.widget.TextView;
 
@@ -22,188 +19,152 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public class OverlayLayoutSettingActivity extends AppCompatActivity {
-    SharedPreferences sharedPreferences;
-    Slider h;
-    TextView val_h;
-    ShapeableImageView add_h;
-    ShapeableImageView sub_h;
 
-    Slider gap;
-    TextView val_gap;
-    ShapeableImageView add_gap;
-    ShapeableImageView sub_gap;
+    private SharedPreferences sharedPreferences;
 
-    Slider x;
-    TextView val_x;
-    ShapeableImageView add_x;
-    ShapeableImageView sub_x;
-
-    Slider w;
-    ShapeableImageView add_w;
-    ShapeableImageView sub_w;
-
-    Slider y;
-    TextView val_y;
-    ShapeableImageView add_y;
-    ShapeableImageView sub_y;
+    private Slider h, gap, x, w, y;
+    private TextView val_h, val_gap, val_x, val_w, val_y;
+    private ShapeableImageView add_h, sub_h, add_gap, sub_gap,
+            add_x, sub_x, add_w, sub_w, add_y, sub_y;
 
     @SuppressLint("RestrictedApi")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        DisplayMetrics metrics = getResources().getDisplayMetrics();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.overlay_layout_setting_activity);
+
         setSupportActionBar(findViewById(R.id.toolbar));
-        assert getSupportActionBar() != null;
-        getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDefaultDisplayHomeAsUpEnabled(true);
+        }
+
         sharedPreferences = getSharedPreferences(getPackageName(), MODE_PRIVATE);
+
+        initViews();
+        setupButtons();
+        setupSliderListeners();
+        loadValues();
+    }
+
+    private void initViews() {
+
         h = findViewById(R.id.seekbar_h);
-        val_h = findViewById(R.id.val_h);
-        add_h = findViewById(R.id.add_h);
-        sub_h = findViewById(R.id.sub_h);
-
         gap = findViewById(R.id.seekbar_gap);
-        val_gap = findViewById(R.id.val_gap);
-        add_gap = findViewById(R.id.add_gap);
-        sub_gap = findViewById(R.id.sub_gap);
-
         x = findViewById(R.id.seekbar_x);
-        val_x = findViewById(R.id.val_x);
-        add_x = findViewById(R.id.add_x);
-        sub_x = findViewById(R.id.sub_x);
-
         w = findViewById(R.id.seekbar_w);
-        add_w = findViewById(R.id.add_w);
-        sub_w = findViewById(R.id.sub_w);
-        val_w = findViewById(R.id.val_w);
-
         y = findViewById(R.id.seekbar_y);
+
+        val_h = findViewById(R.id.val_h);
+        val_gap = findViewById(R.id.val_gap);
+        val_x = findViewById(R.id.val_x);
+        val_w = findViewById(R.id.val_w);
         val_y = findViewById(R.id.val_y);
 
-        add_w.setOnClickListener(l -> {
-            int v = (int) w.getValue();
-            v += 1;
-            if (v >= w.getValueTo()) v = (int) w.getValueTo();
-            if (v <= w.getValueFrom()) v = (int) w.getValueFrom();
-            w.setValue(v);
-            onChange();
-        });
-        sub_w.setOnClickListener(l -> {
-            int v = (int) w.getValue();
-            v -= 1;
-            if (v >= w.getValueTo()) v = (int) w.getValueTo();
-            if (v <= w.getValueFrom()) v = (int) w.getValueFrom();
-            w.setValue(v);
-            onChange();
-        });
-        add_h.setOnClickListener(l -> {
-            int v = (int) h.getValue();
-            v += 1;
-            if (v >= h.getValueTo()) v = (int) h.getValueTo();
-            if (v <= h.getValueFrom()) v = (int) h.getValueFrom();
-            h.setValue(v);
-            onChange();
-        });
-        sub_h.setOnClickListener(l -> {
-            int v = (int) h.getValue();
-            v -= 1;
-            if (v >= h.getValueTo()) v = (int) h.getValueTo();
-            if (v <= h.getValueFrom()) v = (int) h.getValueFrom();
-            h.setValue(v);
-            onChange();
-        });
-        add_gap.setOnClickListener(l -> {
-            int v = (int) gap.getValue();
-            v += 1;
-            if (v >= gap.getValueTo()) v = (int) gap.getValueTo();
-            if (v <= gap.getValueFrom()) v = (int) gap.getValueFrom();
-            gap.setValue(v);
-            onChange();
-        });
-        sub_gap.setOnClickListener(l -> {
-            int v = (int) gap.getValue();
-            v -= 1;
-            if (v >= gap.getValueTo()) v = (int) gap.getValueTo();
-            if (v <= gap.getValueFrom()) v = (int) gap.getValueFrom();
-            gap.setValue(v);
-            onChange();
-        });
+        add_h = findViewById(R.id.add_h);
+        sub_h = findViewById(R.id.sub_h);
+        add_gap = findViewById(R.id.add_gap);
+        sub_gap = findViewById(R.id.sub_gap);
+        add_x = findViewById(R.id.add_x);
+        sub_x = findViewById(R.id.sub_x);
+        add_w = findViewById(R.id.add_w);
+        sub_w = findViewById(R.id.sub_w);
         add_y = findViewById(R.id.add_y);
         sub_y = findViewById(R.id.sub_y);
 
-        add_y.setOnClickListener(l -> {
-            float v = y.getValue();
-            v += 0.1;
-            if (v >= y.getValueTo()) v = y.getValueTo();
-            if (v <= y.getValueFrom()) v = y.getValueFrom();
-            y.setValue(v);
-            onChange();
-        });
-        sub_y.setOnClickListener(l -> {
-            float v = y.getValue();
-            v -= 0.1;
-            if (v >= y.getValueTo()) v = y.getValueTo();
-            if (v <= y.getValueFrom()) v = y.getValueFrom();
-            y.setValue(v);
-            onChange();
-        });
-        add_x.setOnClickListener(l -> {
-            float v = x.getValue();
-            v += 0.1;
-            if (Math.abs(v) < 0.1) v = 0;
-            if (v >= x.getValueTo()) v = x.getValueTo();
-            if (v <= x.getValueFrom()) v = x.getValueFrom();
-            x.setValue(v);
-            onChange();
-        });
-        sub_x.setOnClickListener(l -> {
-            float v = x.getValue();
-            v -= 0.1;
-            if (v >= x.getValueTo()) v = x.getValueTo();
-            if (v <= x.getValueFrom()) v = x.getValueFrom();
-            x.setValue(v);
-            onChange();
-        });
+        findViewById(R.id.reset_btn).setOnClickListener(v -> resetValues());
+    }
 
-        y.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) onChange();
-        });
-        x.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) onChange();
-        });
-        h.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) onChange();
-        });
-        w.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) onChange();
-        });
-        gap.addOnChangeListener((slider, value, fromUser) -> {
-            if (fromUser) onChange();
-        });
+    private void setupButtons() {
 
+        add_w.setOnClickListener(v -> stepSlider(w, 1));
+        sub_w.setOnClickListener(v -> stepSlider(w, -1));
+
+        add_h.setOnClickListener(v -> stepSlider(h, 1));
+        sub_h.setOnClickListener(v -> stepSlider(h, -1));
+
+        add_gap.setOnClickListener(v -> stepSlider(gap, 1));
+        sub_gap.setOnClickListener(v -> stepSlider(gap, -1));
+
+        add_x.setOnClickListener(v -> stepSlider(x, 0.1f));
+        sub_x.setOnClickListener(v -> stepSlider(x, -0.1f));
+
+        add_y.setOnClickListener(v -> stepSlider(y, 0.1f));
+        sub_y.setOnClickListener(v -> stepSlider(y, -0.1f));
+    }
+
+    private void setupSliderListeners() {
+
+        Slider.OnChangeListener listener = (slider, value, fromUser) -> {
+            if (fromUser) onChange();
+        };
+
+        h.addOnChangeListener(listener);
+        w.addOnChangeListener(listener);
+        gap.addOnChangeListener(listener);
+        x.addOnChangeListener(listener);
+        y.addOnChangeListener(listener);
+    }
+
+    private void stepSlider(Slider slider, float step) {
+
+        float value = slider.getValue() + step;
+
+        if (value > slider.getValueTo()) value = slider.getValueTo();
+        if (value < slider.getValueFrom()) value = slider.getValueFrom();
+
+        slider.setValue(value);
+        onChange();
+    }
+
+    private void loadValues() {
         gap.setValue(sharedPreferences.getFloat("overlay_gap", 50));
         w.setValue(sharedPreferences.getFloat("overlay_w", 100));
         h.setValue(sharedPreferences.getFloat("overlay_h", 34));
         x.setValue(sharedPreferences.getFloat("overlay_x", 0));
         y.setValue(sharedPreferences.getFloat("overlay_y", 0.8f));
         updateTexts();
-        findViewById(R.id.reset_btn).setOnClickListener(l -> {
-            gap.setValue(50);
-            w.setValue(100);
-            h.setValue(34);
-            x.setValue(0);
-            y.setValue(0.8f);
-            onChange();
-        });
-
     }
 
-    TextView val_w;
+    private void resetValues() {
+        gap.setValue(50);
+        w.setValue(100);
+        h.setValue(34);
+        x.setValue(0);
+        y.setValue(0.8f);
+        onChange();
+    }
+
+    private void onChange() {
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        editor.putFloat("overlay_w", w.getValue());
+        editor.putFloat("overlay_h", h.getValue());
+        editor.putFloat("overlay_gap", gap.getValue());
+        editor.putFloat("overlay_x", x.getValue());
+        editor.putFloat("overlay_y", y.getValue());
+
+        editor.apply();
+
+        updateTexts();
+
+        Intent intent = new Intent(getPackageName() + ".OVERLAY_LAYOUT_CHANGE");
+
+        intent.putExtra("overlay_w", w.getValue());
+        intent.putExtra("overlay_h", h.getValue());
+        intent.putExtra("overlay_gap", gap.getValue());
+        intent.putExtra("overlay_x", x.getValue());
+        intent.putExtra("overlay_y", y.getValue());
+
+        sendBroadcast(intent);
+    }
 
     @SuppressLint("SetTextI18n")
     private void updateTexts() {
-        DecimalFormat df = new DecimalFormat("##.##");
+
+        DecimalFormat df = new DecimalFormat("0.##");
         df.setRoundingMode(RoundingMode.DOWN);
+
         val_gap.setText(df.format(gap.getValue()) + " dp");
         val_x.setText(df.format(x.getValue()) + " %");
         val_y.setText(df.format(y.getValue()) + " %");
@@ -211,27 +172,10 @@ public class OverlayLayoutSettingActivity extends AppCompatActivity {
         val_w.setText(df.format(w.getValue()) + " dp");
     }
 
-    private void onChange() {
-        sharedPreferences.edit().putFloat("overlay_w", w.getValue()).apply();
-        sharedPreferences.edit().putFloat("overlay_h", h.getValue()).apply();
-        sharedPreferences.edit().putFloat("overlay_gap", gap.getValue()).apply();
-        sharedPreferences.edit().putFloat("overlay_x", x.getValue()).apply();
-        sharedPreferences.edit().putFloat("overlay_y", y.getValue()).apply();
-        updateTexts();
-        Intent intent = new Intent(getPackageName() + ".OVERLAY_LAYOUT_CHANGE");
-        Bundle b = new Bundle();
-        sharedPreferences.getAll().forEach((key, val) -> {
-            if (val instanceof Float) {
-                b.putFloat(key, (float) val);
-            }
-        });
-        intent.putExtra("settings", b);
-        sendBroadcast(intent);
-    }
-
-    private float pxToDp(int x) {
-        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        return x / (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadValues();
     }
 
     @Override

@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Android: Build Debug APK",
+            "type": "shell",
+            "command": "./gradlew assembleDebug",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Install Debug APK",
+            "type": "shell",
+            "command": "./gradlew installDebug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Build + Install",
+            "type": "shell",
+            "command": "./gradlew assembleDebug installDebug",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: Logcat",
+            "type": "shell",
+            "command": "adb logcat",
+            "problemMatcher": []
+        },
+        {
+            "label": "Android: scrcpy (Wireless)",
+            "type": "shell",
+            "command": "scrcpy",
+            "problemMatcher": []
+        }
+    ]
+}

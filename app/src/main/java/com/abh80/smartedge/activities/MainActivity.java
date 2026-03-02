@@ -33,6 +33,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -179,34 +180,44 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     // In your Activity's onCreate or onResume
     private void setupAccessibilitySwitch() {
+
         MaterialSwitch enableSwitch = findViewById(R.id.enable_switch_toggle);
 
         boolean isEnabled = isAccessibilityServiceEnabled(this, OverlayService.class);
         enableSwitch.setChecked(isEnabled);
 
-        enableSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            // Prevent fake toggling
-            enableSwitch.setChecked(isAccessibilityServiceEnabled(this, OverlayService.class));
+        enableSwitch.setOnClickListener(v -> {
 
-            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            startActivity(intent);
+            boolean currentlyEnabled =
+                    isAccessibilityServiceEnabled(this, OverlayService.class);
 
-            if (isChecked) {
+            if (!currentlyEnabled) {
+                // Only redirect if NOT enabled
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+
                 Toast.makeText(
                         this,
-                        "Enable Smart Edge from Accessibility → Installed apps",
+                        "Enable Smart Edge → Installed apps",
                         Toast.LENGTH_LONG
                 ).show();
             } else {
+                // Already enabled — inform user
                 Toast.makeText(
                         this,
-                        "Disable Smart Edge from Accessibility settings",
-                        Toast.LENGTH_LONG
+                        "Service already enabled",
+                        Toast.LENGTH_SHORT
                 ).show();
             }
+
+            // Reset correct state after user interaction
+            enableSwitch.postDelayed(() ->
+                    enableSwitch.setChecked(
+                            isAccessibilityServiceEnabled(this, OverlayService.class)
+                    ), 300);
+
         });
 
-        // Optional: entire card clickable
         MaterialCardView cardView = findViewById(R.id.enable_switch);
         cardView.setOnClickListener(v -> enableSwitch.performClick());
     }
@@ -239,8 +250,9 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     @Override
     protected void onPause() {
         super.onPause();
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
-
+        try {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+        } catch (Exception ignored) {}
     }
 
     private void init() {
@@ -277,8 +289,11 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(getPackageName() + ".UPDATE_AVAIL")) {
+                String version = intent.getStringExtra("version");
+                if (version == null) version = "Unknown";
+
                 new MaterialAlertDialogBuilder(MainActivity.this).setTitle("New Update Available")
-                        .setMessage("We would like to update this app from " + BuildConfig.VERSION_NAME + " --> " + intent.getExtras().getString("version") +
+                        .setMessage("We would like to update this app from " + BuildConfig.VERSION_NAME + " --> " + version +
                                 ".\n\nUpdating app generally means better and more stable experience.")
                         .setCancelable(false)
                         .setNegativeButton("Later", (dialogInterface, i) -> {
@@ -319,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         @SuppressLint("UseCompatLoadingForDrawables")
         @Override
         public void onDraw(@NonNull Canvas c, @NonNull RecyclerView parent, @NonNull RecyclerView.State state) {
-            int color = MaterialColors.getColor(MainActivity.this, com.google.android.material.R.attr.colorOnSecondary, getColor(R.color.md_theme_dark_secondary));
+            int color = MaterialColors.getColor(MainActivity.this, com.google.android.material.R.attr.colorOnSecondary, ContextCompat.getColor(MainActivity.this, R.color.md_theme_dark_secondary));
             super.onDraw(c, parent, state);
             int childCount = recyclerView.getChildCount();
             int width = recyclerView.getWidth();
