@@ -191,24 +191,14 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             boolean currentlyEnabled =
                     isAccessibilityServiceEnabled(this, OverlayService.class);
 
-            if (!currentlyEnabled) {
-                // Only redirect if NOT enabled
-                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(intent);
+            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            startActivity(intent);
 
-                Toast.makeText(
-                        this,
-                        "Enable Smart Edge → Installed apps",
-                        Toast.LENGTH_LONG
-                ).show();
-            } else {
-                // Already enabled — inform user
-                Toast.makeText(
-                        this,
-                        "Service already enabled",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
+            Toast.makeText(
+                    this,
+                    "Enable Smart Edge → Installed apps",
+                    Toast.LENGTH_LONG
+            ).show();
 
             // Reset correct state after user interaction
             enableSwitch.postDelayed(() ->

@@ -42,6 +42,7 @@ import com.abh80.smartedge.R;
 import com.abh80.smartedge.plugins.BasePlugin;
 import com.abh80.smartedge.plugins.ExportedPlugins;
 import com.abh80.smartedge.utils.CallBack;
+import com.abh80.smartedge.utils.Constants;
 import com.google.android.material.color.DynamicColors;
 
 import java.time.Instant;
@@ -65,6 +66,7 @@ public class OverlayService extends AccessibilityService {
     private final ArrayList<BasePlugin> plugins = ExportedPlugins.getPlugins();
     private final ArrayList<String>     queued  = new ArrayList<>();
     private BasePlugin binded_plugin;
+    private int currentIndex = 0;
 
     // ─── Window state ────────────────────────────────────────────────────────────
     public  WindowManager  mWindowManager;
@@ -78,7 +80,7 @@ public class OverlayService extends AccessibilityService {
     private View    mView;
     private Context ctx;
     private int     color;
-    private int     minWidth;
+    public int     minWidth;
     private int     gap;
     private int     lastKnownWidth;
 
@@ -167,20 +169,35 @@ public class OverlayService extends AccessibilityService {
     }
 
     private void onLayoutChange(Intent intent) {
-        Bundle settings = intent.getBundleExtra("settings");
-        if (settings == null || mView == null) return;
-        for (String s : settings.keySet()) {
-            if (settings.get(s) instanceof Float) sharedPreferences.putFloat(s, settings.getFloat(s));
-        }
-        WindowManager.LayoutParams p = (WindowManager.LayoutParams) mView.getLayoutParams();
-        minWidth  = dpToInt((int) sharedPreferences.getFloat("overlay_w",   83));
-        minHeight = dpToInt((int) sharedPreferences.getFloat("overlay_h",   40));
-        gap       = dpToInt((int) sharedPreferences.getFloat("overlay_gap", 50));
-        y = (int) (sharedPreferences.getFloat("overlay_y", 0.67f) * 0.01f * metrics.heightPixels);
-        x = (int) (sharedPreferences.getFloat("overlay_x", 0f)   * 0.01f * metrics.widthPixels);
-        p.y = y; p.x = x; p.height = minHeight;
+
+        if (mView == null) return;
+
+        float wVal   = intent.getFloatExtra("overlay_w", 120f);
+        float hVal   = intent.getFloatExtra("overlay_h", 34f);
+        float gapVal = intent.getFloatExtra("overlay_gap", 50f);
+        float xVal   = intent.getFloatExtra("overlay_x", 0f);
+        float yVal   = intent.getFloatExtra("overlay_y", 0.8f);
+
+        minWidth  = dpToInt((int) wVal);
+        minHeight = dpToInt((int) hVal);
+        gap       = dpToInt((int) gapVal);
+
+        x = (int) (xVal * 0.01f * metrics.widthPixels);
+        y = (int) (yVal * 0.01f * metrics.heightPixels);
+
+        WindowManager.LayoutParams p =
+                (WindowManager.LayoutParams) mView.getLayoutParams();
+
+        p.width  = minWidth;
+        p.height = minHeight;
+        p.x = x;
+        p.y = y;
+
         setGapWidth(gap);
-        mWindowManager.updateViewLayout(mView, p);
+
+        if (mView.isAttachedToWindow()) {
+            mWindowManager.updateViewLayout(mView, p);
+        }
     }
 
     private void onColorChange(Intent intent) {
@@ -216,8 +233,8 @@ public class OverlayService extends AccessibilityService {
                 | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
                 | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
 
-        if (minWidth  == 0) minWidth  = dpToInt(110);   // better collapsed width
-        if (minHeight == 0) minHeight = dpToInt(42);    // better collapsed height
+        if (minWidth  == 0) minWidth  = dpToInt(Constants.COLLAPSED_PILL_WIDTH);   // better collapsed width
+        if (minHeight == 0) minHeight = dpToInt(Constants.COLLAPSED_PILL_HEIGHT);    // better collapsed height
         if (gap       == 0) gap       = dpToInt((int) sharedPreferences.getFloat("overlay_gap", 50));
 
         color          = sharedPreferences.getInt("color", getColor(R.color.black));
@@ -282,8 +299,12 @@ public class OverlayService extends AccessibilityService {
         float dx = touchX2 - touchX1;
         float dy = touchY2 - touchY1;
 
-        if (Math.abs(dx) >= MIN_SWIPE_DISTANCE && binded_plugin != null) {
-            if (dx < 0) binded_plugin.onLeftSwipe(); else binded_plugin.onRightSwipe();
+        if (Math.abs(dx) >= MIN_SWIPE_DISTANCE) {
+            if (dx < 0) {
+                showNextPlugin();
+            } else {
+                showPreviousPlugin();
+            }
             return;
         }
         if (-dy >= MIN_SWIPE_DISTANCE) { shrinkOverlay(); return; }
@@ -336,7 +357,7 @@ public class OverlayService extends AccessibilityService {
             activeAnimSet.cancel();
 
         // Proper dynamic island widths
-        int collapsedWidth = dpToInt(110);
+        int collapsedWidth = dpToInt(Constants.COLLAPSED_PILL_WIDTH);
         int expandedWidth  = (int) (metrics.widthPixels * 0.96f);
 
         WindowManager.LayoutParams params =
@@ -404,6 +425,8 @@ public class OverlayService extends AccessibilityService {
             if (insertFront) queued.add(0, plugin.getID()); else queued.add(plugin.getID());
         }
         bindPlugin();
+
+        currentIndex = 0;
     }
 
     public void dequeue(BasePlugin plugin) {
@@ -411,6 +434,8 @@ public class OverlayService extends AccessibilityService {
         queued.remove(plugin.getID());
         if (binded_plugin != null && binded_plugin.getID().equals(plugin.getID())) binded_plugin = null;
         bindPlugin();
+
+        currentIndex = 0;
     }
 
     private void bindPlugin() {
@@ -420,11 +445,16 @@ public class OverlayService extends AccessibilityService {
             closeOverlay();
             return;
         }
-        if (binded_plugin != null && Objects.equals(queued.get(0), binded_plugin.getID())) return;
-        if (binded_plugin != null) binded_plugin.onUnbind();
+        if (currentIndex >= queued.size())
+            currentIndex = 0;
+
+        String targetId = queued.get(currentIndex);
+
+        if (binded_plugin != null && Objects.equals(targetId, binded_plugin.getID()))
+            return;
 
         Optional<BasePlugin> found = plugins.stream()
-                .filter(p -> p.getID().equals(queued.get(0))).findFirst();
+                .filter(p -> p.getID().equals(targetId)).findFirst();
         if (!found.isPresent()) return;
         binded_plugin = found.get();
         attachPluginView(binded_plugin.onBind());
@@ -442,8 +472,10 @@ public class OverlayService extends AccessibilityService {
         cs.connect(pluginView.getId(), ConstraintSet.BOTTOM, mView.getId(), ConstraintSet.BOTTOM, 0);
         cs.applyTo((ConstraintLayout) mView);
 
-        mView.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-        setGapWidth(gap);
+        WindowManager.LayoutParams params =
+                (WindowManager.LayoutParams) mView.getLayoutParams();
+        params.width = minWidth;
+        mWindowManager.updateViewLayout(mView, params);        setGapWidth(gap);
         mWindowManager.updateViewLayout(mView, mView.getLayoutParams());
         if (binded_plugin != null) binded_plugin.onBindComplete();
     }
@@ -493,6 +525,28 @@ public class OverlayService extends AccessibilityService {
         return value.data;
     }
 
+    private void showNextPlugin() {
+        if (queued.isEmpty()) return;
+
+        currentIndex++;
+        if (currentIndex >= queued.size())
+            currentIndex = 0; // circular navigation
+
+        binded_plugin = null;
+        bindPlugin();
+    }
+
+    private void showPreviousPlugin() {
+        if (queued.isEmpty()) return;
+
+        currentIndex--;
+        if (currentIndex < 0)
+            currentIndex = queued.size() - 1;
+
+        binded_plugin = null;
+        bindPlugin();
+    }
+
     // ════════════════════════════════════════════════════════════════════════════
     // Lifecycle
     // ════════════════════════════════════════════════════════════════════════════
@@ -511,6 +565,5 @@ public class OverlayService extends AccessibilityService {
         unregisterReceiver(broadcastReceiver);
         if (mView != null) mWindowManager.removeView(mView);
         plugins.forEach(BasePlugin::onDestroy);
-        Runtime.getRuntime().exit(0);
     }
 }

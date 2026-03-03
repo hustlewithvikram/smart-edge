@@ -7,53 +7,47 @@
     android:layout_height="wrap_content"
     android:clipChildren="false">
 
-    <!-- Cover image -->
+    <!-- Cover image (left anchored) -->
     <RelativeLayout
         android:id="@+id/relativeLayout"
-        android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
         android:paddingVertical="5dp">
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/cover"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_centerVertical="true"
             android:layout_marginStart="8dp"
-            android:contentDescription="@string/cover"
             app:shapeAppearance="?attr/shapeAppearanceMediumComponent" />
     </RelativeLayout>
 
-    <!-- Visualizer -->
+    <!-- Visualizer (right anchored) -->
     <RelativeLayout
         android:id="@+id/relativeLayout4"
-        android:layout_centerVertical="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/blank_space"
-        android:clickable="false"
-        android:focusable="false"
-        android:paddingVertical="5dp"
-        tools:ignore="RtlSymmetry,UselessLeaf">
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:paddingVertical="5dp">
 
         <com.abh80.smartedge.plugins.MediaSession.SongVisualizer
             android:id="@+id/visualizer"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:clickable="false"
-            android:focusable="false" />
+            android:layout_marginEnd="8dp"/>
     </RelativeLayout>
 
-    <!-- Blank space -->
-    <LinearLayout
+    <!-- Spacer in between -->
+    <View
         android:id="@+id/blank_space"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:minWidth="50dp"
-        android:orientation="horizontal"
-        android:visibility="gone" />
+        android:layout_toEndOf="@id/relativeLayout"
+        android:layout_toStartOf="@id/relativeLayout4"
+        android:minWidth="50dp"/>
 
     <!-- Text info -->
     <LinearLayout
