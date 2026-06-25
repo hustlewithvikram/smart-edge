@@ -63,18 +63,19 @@ public class BatteryPlugin extends BasePlugin {
     private TextView timeRemainingText;
 
     private ValueAnimator pulseAnimator;
+    private boolean receiverRegistered = false;
 
     // ─────────────────────────────────────────────────────────────
-
     @Override
     public void onCreate(OverlayService context) {
         ctx = context;
         mHandler = new Handler(Looper.getMainLooper());
 
-        IntentFilter f = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        f.addAction(Intent.ACTION_POWER_CONNECTED);
-        f.addAction(Intent.ACTION_POWER_DISCONNECTED);
-        ctx.registerReceiver(receiver, f);
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        filter.addAction(Intent.ACTION_POWER_CONNECTED);
+        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
+
+        ctx.registerReceiver(receiver, filter);
     }
 
     @Override
@@ -86,15 +87,36 @@ public class BatteryPlugin extends BasePlugin {
 
     @Override
     public void onUnbind() {
+
         stopPulse();
+
+        collapsedContainer = null;
+        collapsedBattery = null;
+        collapsedPercent = null;
+
+        expandedContainer = null;
+        expandedBattery = null;
+        detailedPercent = null;
+        chargingStatus = null;
+        healthText = null;
+        temperatureText = null;
+        voltageText = null;
+        timeRemainingText = null;
+
         mView = null;
     }
 
     @Override
     public void onDestroy() {
+
         stopPulse();
-        try { ctx.unregisterReceiver(receiver); } catch (Exception ignored) {}
-        if (mHandler != null) mHandler.removeCallbacksAndMessages(null);
+
+        try {
+            ctx.unregisterReceiver(receiver);
+        } catch (Exception ignored) {}
+
+        if (mHandler != null)
+            mHandler.removeCallbacksAndMessages(null);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -146,13 +168,17 @@ public class BatteryPlugin extends BasePlugin {
             }
 
             mHandler.post(() -> {
+
                 if (isCharging || batteryPercent <= 15f)
                     ctx.enqueue(BatteryPlugin.this);
                 else if (!expanded)
                     ctx.dequeue(BatteryPlugin.this);
 
-                updateView();
-                managePulse();
+                // UI may not exist yet
+                if (mView != null) {
+                    updateView();
+                    managePulse();
+                }
             });
         }
     };
@@ -162,11 +188,24 @@ public class BatteryPlugin extends BasePlugin {
     // ─────────────────────────────────────────────────────────────
 
     private void updateView() {
-        if (expanded) updateExpanded();
-        else updateCollapsed();
+
+        if (mView == null)
+            return;
+
+        if (collapsedContainer == null)
+            return;
+
+        if (expanded)
+            updateExpanded();
+        else
+            updateCollapsed();
     }
 
     private void updateCollapsed() {
+
+        if (collapsedBattery == null || collapsedPercent == null)
+            return;
+
         int accent = getAccentColor();
 
         collapsedPercent.setText(Math.round(batteryPercent) + "%");
@@ -174,10 +213,19 @@ public class BatteryPlugin extends BasePlugin {
 
         collapsedBattery.updateBatteryPercent(batteryPercent);
         collapsedBattery.setStrokeColor(accent);
-
     }
 
     private void updateExpanded() {
+
+        if (expandedBattery == null
+                || detailedPercent == null
+                || chargingStatus == null
+                || healthText == null
+                || temperatureText == null
+                || voltageText == null
+                || timeRemainingText == null)
+            return;
+
         int accent = getAccentColor();
 
         detailedPercent.setText(Math.round(batteryPercent) + "%");
@@ -205,11 +253,16 @@ public class BatteryPlugin extends BasePlugin {
 
     @Override
     public void onExpand() {
+
         if (expanded) return;
         expanded = true;
 
-        setVis(collapsedContainer, false);
-        setVis(expandedContainer, true);
+        // Keep mini island visible
+        collapsedContainer.setVisibility(View.VISIBLE);
+
+        // Expanded UI must not participate in drawing yet
+        expandedContainer.setAlpha(0f);
+        expandedContainer.setVisibility(View.INVISIBLE);
 
         DisplayMetrics metrics = ctx.metrics;
 
@@ -217,7 +270,36 @@ public class BatteryPlugin extends BasePlugin {
                 ctx.dpToInt(220),
                 metrics.widthPixels - ctx.dpToInt(16),
                 true,
-                new CallBack(),
+                new CallBack() {
+                    @Override
+                    public void onFinish() {
+
+                        // Wait one frame so Android finishes layout
+                        expandedContainer.post(() -> {
+
+                            collapsedContainer.setVisibility(View.GONE);
+
+                            expandedContainer.setVisibility(View.VISIBLE);
+
+                            updateView();
+                            managePulse();
+
+                            expandedContainer.setScaleX(0.96f);
+                            expandedContainer.setScaleY(0.96f);
+                            expandedContainer.setAlpha(0f);
+
+                            expandedContainer.animate()
+                                    .alpha(1f)
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .setDuration(180)
+                                    .setInterpolator(new DecelerateInterpolator())
+                                    .start();
+
+                        });
+
+                    }
+                },
                 new CallBack(),
                 false
         );
@@ -225,23 +307,35 @@ public class BatteryPlugin extends BasePlugin {
 
     @Override
     public void onCollapse() {
+
         if (!expanded) return;
         expanded = false;
 
-        setVis(expandedContainer, false);
-        setVis(collapsedContainer, true);
+        expandedContainer.animate()
+                .alpha(0f)
+                .setDuration(100)
+                .withEndAction(() -> {
 
-        ctx.animateOverlay(
-                ctx.minHeight,
-                ctx.minWidth,
-                false,
-                new CallBack(),
-                new CallBack(),
-                false
-        );
+                    expandedContainer.setVisibility(View.GONE);
 
-        if (!isCharging)
-            ctx.dequeue(this);
+                    collapsedContainer.setVisibility(View.VISIBLE);
+
+                    updateView();
+                    managePulse();
+
+                    ctx.animateOverlay(
+                            ctx.minHeight,
+                            ctx.minWidth,
+                            false,
+                            new CallBack(),
+                            new CallBack(),
+                            false
+                    );
+
+                    if (!isCharging)
+                        ctx.dequeue(BatteryPlugin.this);
+                })
+                .start();
     }
 
     @Override
@@ -260,9 +354,14 @@ public class BatteryPlugin extends BasePlugin {
     }
 
     private void startPulse() {
-        if (pulseAnimator != null && pulseAnimator.isRunning()) return;
+
+        if (pulseAnimator != null && pulseAnimator.isRunning())
+            return;
 
         BatteryImageView target = expanded ? expandedBattery : collapsedBattery;
+
+        if (target == null)
+            return;
 
         int bright = COLOR_CHARGING;
         int dim = blendWithAlpha(bright, 0.4f);
@@ -274,22 +373,26 @@ public class BatteryPlugin extends BasePlugin {
         pulseAnimator.setInterpolator(new DecelerateInterpolator());
 
         pulseAnimator.addUpdateListener(a -> {
-            int c = (int) a.getAnimatedValue();
-            target.setStrokeColor(c);
+            target.setStrokeColor((int) a.getAnimatedValue());
         });
 
         pulseAnimator.start();
     }
 
     private void stopPulse() {
+
         if (pulseAnimator != null) {
             pulseAnimator.cancel();
             pulseAnimator = null;
         }
 
         int solid = getAccentColor();
-        collapsedBattery.setStrokeColor(solid);
-        expandedBattery.setStrokeColor(solid);
+
+        if (collapsedBattery != null)
+            collapsedBattery.setStrokeColor(solid);
+
+        if (expandedBattery != null)
+            expandedBattery.setStrokeColor(solid);
     }
 
     // ─────────────────────────────────────────────────────────────
